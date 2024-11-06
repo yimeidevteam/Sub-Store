@@ -105,7 +105,7 @@ function getExpiredTime() {
                 expiration = intimed;
             }
         }
-        return 36e5;
+        return 6e5;
     } else {
         expiration = $.read(CSR_EXPIRATION_TIME_KEY);
         return expiration;
