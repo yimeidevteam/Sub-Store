@@ -65,6 +65,9 @@ export default function register($app) {
 }
 
 function getEnv(req, res) {
+    if (req.query.share) {
+        env.feature.share = true;
+    }
     success(res, env);
 }
 

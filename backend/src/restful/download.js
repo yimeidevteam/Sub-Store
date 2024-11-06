@@ -13,6 +13,9 @@ import { getISO } from '@/utils/geo';
 import env from '@/utils/env';
 
 export default function register($app) {
+    $app.get('/share/col/:name', downloadCollection);
+    $app.get('/share/sub/:name', downloadSubscription);
+
     $app.get('/download/collection/:name', downloadCollection);
     $app.get('/download/:name', downloadSubscription);
     $app.get(
@@ -51,6 +54,8 @@ async function downloadSubscription(req, res) {
     let { name, nezhaIndex } = req.params;
     name = decodeURIComponent(name);
     nezhaIndex = decodeURIComponent(nezhaIndex);
+
+    const useMihomoExternal = req.query.target === 'SurgeMac';
 
     const platform =
         req.query.target || getPlatformFromHeaders(req.headers) || 'JSON';
@@ -122,6 +127,10 @@ async function downloadSubscription(req, res) {
         $.info(`包含不支持的节点: ${includeUnsupportedProxy}`);
     }
 
+    if (useMihomoExternal) {
+        $.info(`手动指定了 target 为 SurgeMac, 将使用 Mihomo External`);
+    }
+
     const allSubs = $.read(SUBS_KEY);
     const sub = findByName(allSubs, name);
     if (sub) {
@@ -138,6 +147,7 @@ async function downloadSubscription(req, res) {
                 produceType,
                 produceOpts: {
                     'include-unsupported-proxy': includeUnsupportedProxy,
+                    useMihomoExternal,
                 },
                 $options,
                 proxy,
@@ -178,7 +188,7 @@ async function downloadSubscription(req, res) {
                     if (!$arguments.noFlow) {
                         // forward flow headers
                         const flowInfo = await getFlowHeaders(
-                            url,
+                            $arguments?.insecure ? `${url}#insecure` : url,
                             $arguments.flowUserAgent,
                             undefined,
                             proxy || sub.proxy,
@@ -253,6 +263,8 @@ async function downloadCollection(req, res) {
     name = decodeURIComponent(name);
     nezhaIndex = decodeURIComponent(nezhaIndex);
 
+    const useMihomoExternal = req.query.target === 'SurgeMac';
+
     const platform =
         req.query.target || getPlatformFromHeaders(req.headers) || 'JSON';
 
@@ -310,6 +322,9 @@ async function downloadCollection(req, res) {
         includeUnsupportedProxy = decodeURIComponent(includeUnsupportedProxy);
         $.info(`包含不支持的节点: ${includeUnsupportedProxy}`);
     }
+    if (useMihomoExternal) {
+        $.info(`手动指定了 target 为 SurgeMac, 将使用 Mihomo External`);
+    }
 
     if (collection) {
         try {
@@ -321,6 +336,7 @@ async function downloadCollection(req, res) {
                 produceType,
                 produceOpts: {
                     'include-unsupported-proxy': includeUnsupportedProxy,
+                    useMihomoExternal,
                 },
                 $options,
                 proxy,
@@ -365,7 +381,7 @@ async function downloadCollection(req, res) {
                         }
                         if (!$arguments.noFlow) {
                             const flowInfo = await getFlowHeaders(
-                                url,
+                                $arguments?.insecure ? `${url}#insecure` : url,
                                 $arguments.flowUserAgent,
                                 undefined,
                                 proxy || sub.proxy || collection.proxy,
