@@ -3,7 +3,7 @@ import { CACHE_EXPIRATION_TIME_MS, RESOURCE_CACHE_KEY } from '@/constants';
 
 class ResourceCache {
     constructor(expires) {
-        this.expires = expires;
+        this.expires = 6e5;
         if (!$.read(RESOURCE_CACHE_KEY)) {
             $.write('{}', RESOURCE_CACHE_KEY);
         }
